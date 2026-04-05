@@ -16,38 +16,41 @@ struct WelcomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background gradient
+                // Background gradient - subtle peach/cream
                 LinearGradient(
                     colors: [
-                        Color(hex: "#FDDCB5"),
-                        Color(hex: "#F97316")
+                        Color(hex: "#F5DCC8"),
+                        Color(hex: "#FAE8D8"),
+                        Color(hex: "#F2D5BE")
                     ],
                     startPoint: .top,
-                    endPoint: .bottom
+                    endPoint: .center
                 )
                 .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     Spacer()
+                        .frame(height: 40)
                     
                     // Logo
                     Text("Layman")
-                        .font(.system(size: 42, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 54, weight: .bold))
+                        .foregroundColor(Color(hex: "#1A1A1A"))
                     
                     Spacer()
+                        .frame(height:160)
                     
                     // Slogan
-                    VStack(spacing: 4) {
+                    VStack(spacing: -4) {
                         Text("Business,")
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundColor(.white)
+                            .font(.system(size: 42, weight: .bold))
+                            .foregroundColor(Color(hex: "#1A1A1A"))
                         Text("tech & startups")
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundColor(.white)
+                            .font(.system(size: 42, weight: .bold))
+                            .foregroundColor(Color(hex: "#1A1A1A"))
                         Text("made simple")
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundColor(Color(hex: "#7C2D00"))
+                            .font(.system(size: 42, weight: .bold))
+                            .foregroundColor(Color(hex: "#C4652A"))
                     }
                     
                     Spacer()
@@ -78,15 +81,14 @@ struct SwipeButton: View {
     
     var body: some View {
         ZStack(alignment: .leading) {
-            // Track
             Capsule()
-                .fill(Color.white.opacity(0.3))
+                .fill(Color(hex: "#C4652A"))
                 .frame(height: 60)
             
             // Label
-            Text("Swipe to get started →")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+            Text("Swipe to get started")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(Color(hex: "#FAE8D8"))
                 .frame(maxWidth: .infinity)
             
             // Thumb
@@ -95,7 +97,7 @@ struct SwipeButton: View {
                 .frame(width: thumbSize, height: thumbSize)
                 .overlay(
                     Image(systemName: "chevron.right.2")
-                        .foregroundColor(Color(hex: "#F97316"))
+                        .foregroundColor(Color(hex: "#C4652A"))
                         .font(.system(size: 18, weight: .bold))
                 )
                 .offset(x: 4 + offset)
@@ -153,4 +155,9 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
+}
+
+#Preview {
+    WelcomeView()
+        .environmentObject(AuthViewModel())
 }
