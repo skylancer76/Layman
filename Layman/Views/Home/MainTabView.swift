@@ -24,15 +24,15 @@ struct MainTabView: View {
             SavedView()
                 .environmentObject(savedViewModel)
                 .tabItem {
-                    Label("Saved", systemImage: "bookmark.fill")
+                    Label("Saved", systemImage: "bookmark")
                 }
             
             ProfileView()
                 .environmentObject(authViewModel)
                 .tabItem {
-                    Label("Profile", systemImage: "person.fill")
+                    Label("Profile", systemImage: "person.crop.circle.fill")
                 }
         }
-        .tint(Color(hex: "#F97316"))
+        .tint(Color(hex: "#C4652A"))
     }
 }

@@ -62,6 +62,7 @@ struct HomeView: View {
                             // Featured Carousel
                             if !articlesViewModel.featuredArticles.isEmpty {
                                 FeaturedCarouselView(articles: articlesViewModel.featuredArticles)
+                                    .padding(.top, 4)
                             }
                             
                             // Today's Picks
@@ -72,7 +73,7 @@ struct HomeView: View {
                                     Spacer()
                                     Button("View All") {}
                                         .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(Color(hex: "#F97316"))
+                                        .foregroundColor(Color(hex: "#C4652A"))
                                 }
                                 .padding(.horizontal, 16)
                                 
@@ -98,14 +99,16 @@ struct HomeView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Text("Layman")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(Color(hex: "#F97316"))
+                        .foregroundColor(Color(hex: "#1A1A1A"))
+                        .padding(.leading, 4)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         withAnimation { showSearch.toggle() }
                     } label: {
                         Image(systemName: showSearch ? "xmark" : "magnifyingglass")
-                            .foregroundColor(Color(hex: "#F97316"))
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.black)
                     }
                 }
             }
@@ -138,7 +141,7 @@ struct FeaturedCarouselView: View {
             HStack(spacing: 6) {
                 ForEach(0..<articles.count, id: \.self) { index in
                     Circle()
-                        .fill(index == currentIndex ? Color(hex: "#F97316") : Color.gray.opacity(0.3))
+                        .fill(index == currentIndex ? Color(hex: "#C4652A") : Color.gray.opacity(0.3))
                         .frame(width: index == currentIndex ? 10 : 6, height: index == currentIndex ? 10 : 6)
                         .animation(.spring(), value: currentIndex)
                 }
@@ -153,27 +156,47 @@ struct FeaturedCardView: View {
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Image
-            AsyncImage(url: URL(string: article.imageURL ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
+            // Image with caching
+            if let urlString = article.imageURL, let url = URL(string: urlString) {
+                CachedAsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "#E8793A"), Color(hex: "#F97316")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            Image(systemName: "newspaper")
+                                .font(.system(size: 40))
+                                .foregroundColor(.white.opacity(0.5))
+                        )
+                }
+            } else {
                 Rectangle()
-                    .fill(Color(hex: "#F97316").opacity(0.3))
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#E8793A"), Color(hex: "#F97316")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .overlay(
                         Image(systemName: "newspaper")
                             .font(.system(size: 40))
-                            .foregroundColor(Color(hex: "#F97316"))
+                            .foregroundColor(.white.opacity(0.5))
                     )
             }
-            .frame(height: 220)
-            .clipped()
             
             // Gradient overlay
             LinearGradient(
                 colors: [.clear, .black.opacity(0.7)],
-                startPoint: .top,
+                startPoint: .center,
                 endPoint: .bottom
             )
             
@@ -182,8 +205,11 @@ struct FeaturedCardView: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.white)
                 .lineLimit(2)
+                .multilineTextAlignment(.leading)
                 .padding(16)
         }
+        .frame(height: 220)
+        .clipped()
         .cornerRadius(16)
         .padding(.horizontal, 16)
     }
@@ -195,38 +221,107 @@ struct ArticleRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: URL(string: article.imageURL ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Rectangle()
-                    .fill(Color(hex: "#F97316").opacity(0.2))
+            // Image with caching
+            if let urlString = article.imageURL, let url = URL(string: urlString) {
+                CachedAsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#FAE8D8"))
+                        .overlay(
+                            Image(systemName: "newspaper")
+                                .foregroundColor(Color(hex: "#C4652A"))
+                        )
+                }
+                .frame(width: 80, height: 80)
+                .cornerRadius(12)
+                .clipped()
+            } else {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(hex: "#FAE8D8"))
                     .overlay(
                         Image(systemName: "newspaper")
-                            .foregroundColor(Color(hex: "#F97316"))
+                            .foregroundColor(Color(hex: "#C4652A"))
                     )
+                    .frame(width: 80, height: 80)
             }
-            .frame(width: 80, height: 80)
-            .cornerRadius(12)
-            .clipped()
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(article.title)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.primary)
                     .lineLimit(3)
+                    .multilineTextAlignment(.leading)
                 
-                Text(article.sourceName ?? "")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
+                if let source = article.sourceName, !source.isEmpty {
+                    Text(source)
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                }
             }
             
             Spacer()
         }
         .padding(12)
-        .background(Color.white)
+        .background(Color(hex: "#F4E7D8"))
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8)
+        .shadow(color: .black.opacity(0.04), radius: 6)
     }
+}
+
+// MARK: - Image Cache Manager
+final class ImageCacheManager {
+    static let shared = ImageCacheManager()
+    let cache: NSCache<NSURL, UIImage> = {
+        let cache = NSCache<NSURL, UIImage>()
+        cache.countLimit = 100
+        cache.totalCostLimit = 50 * 1024 * 1024 // 50MB
+        return cache
+    }()
+    private init() {}
+}
+
+// MARK: - Cached Async Image
+struct CachedAsyncImage<Content: View, Placeholder: View>: View {
+    let url: URL
+    @ViewBuilder let content: (Image) -> Content
+    @ViewBuilder let placeholder: () -> Placeholder
+    
+    @State private var image: UIImage?
+    
+    var body: some View {
+        Group {
+            if let image = image {
+                content(Image(uiImage: image))
+            } else {
+                placeholder()
+                    .onAppear {
+                        loadImage()
+                    }
+            }
+        }
+    }
+    
+    private func loadImage() {
+        if let cached = ImageCacheManager.shared.cache.object(forKey: url as NSURL) {
+            self.image = cached
+            return
+        }
+        
+        let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            guard let data = data, let uiImage = UIImage(data: data) else { return }
+            ImageCacheManager.shared.cache.setObject(uiImage, forKey: url as NSURL)
+            DispatchQueue.main.async {
+                self.image = uiImage
+            }
+        }.resume()
+    }
+}
+
+#Preview {
+    HomeView()
+        .environmentObject(ArticlesViewModel())
 }
