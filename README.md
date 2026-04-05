@@ -5,10 +5,6 @@ Layman is a simplified news reader that covers business, tech, and startups. The
 > [!NOTE]
 > This project has been developed as part of the assignment for the recruitment process at **BrewApps**.
 
-<p align="center">
-  <video src="./Layman/Assets.xcassets/Github%20Video.mov" width="300" controls></video>
-</p>
-
 ## Features
 
 - **Personalized News Feed**: Stay up to date with the latest business and technology articles from top sources.
@@ -63,5 +59,5 @@ The project strictly follows the **MVVM (Model-View-ViewModel)** architectural p
 4. **Build and Run**
    Select your preferred iPhone simulator or plugged-in device in Xcode and hit `Cmd + R` to build and run the application.
 
-[!IMPORTANT]
-The current AI functionality in the app is powered by Groq (Llama-3.1-8B-Instant) using the free-tier capabilities. Paid or higher-tier features are not currently enabled, which may occasionally impact the quality, depth, or professional tone of some article summaries and responses.
+> [!IMPORTANT]
+> The current AI functionality in the app is powered by Groq (Llama-3.1-8B-Instant) using the free-tier capabilities. Paid or higher-tier features are not currently enabled, which may occasionally impact the quality, depth, or professional tone of some article summaries and responses.
