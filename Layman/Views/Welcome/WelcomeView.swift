@@ -12,6 +12,7 @@ struct WelcomeView: View {
     @State private var slideOffset: CGFloat = 0
     @State private var hasSlid = false
     @State private var navigateToAuth = false
+    @State private var swipeButtonID = UUID()
     
     var body: some View {
         NavigationStack {
@@ -74,6 +75,7 @@ struct WelcomeView: View {
                     SwipeButton(onSwipeComplete: {
                         navigateToAuth = true
                     })
+                    .id(swipeButtonID)
                     .padding(.horizontal, 32)
                     .padding(.bottom, 48)
                 }
@@ -81,6 +83,10 @@ struct WelcomeView: View {
             .navigationDestination(isPresented: $navigateToAuth) {
                 AuthView()
                     .environmentObject(authViewModel)
+            }
+            .onAppear {
+                // Instantly resets the swipe button state when navigating back
+                swipeButtonID = UUID()
             }
         }
     }

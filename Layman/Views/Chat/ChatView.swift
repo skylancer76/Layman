@@ -41,26 +41,25 @@ struct ChatView: View {
                                             .foregroundColor(.gray)
                                             .padding(.horizontal, 16)
                                         
-                                        ScrollView(.horizontal, showsIndicators: false) {
-                                            HStack(spacing: 8) {
-                                                ForEach(viewModel.suggestions, id: \.self) { suggestion in
-                                                    Button {
-                                                        Task {
-                                                            await viewModel.sendMessage(suggestion)
-                                                        }
-                                                    } label: {
-                                                        Text(suggestion)
-                                                            .font(.system(size: 13, weight: .medium))
-                                                            .foregroundColor(.white)
-                                                            .padding(.horizontal, 14)
-                                                            .padding(.vertical, 10)
-                                                            .background(Color(hex: "#F97316"))
-                                                            .cornerRadius(20)
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            ForEach(viewModel.suggestions, id: \.self) { suggestion in
+                                                Button {
+                                                    Task {
+                                                        await viewModel.sendMessage(suggestion)
                                                     }
+                                                } label: {
+                                                    Text(suggestion)
+                                                        .font(.system(size: 14, weight: .medium))
+                                                        .foregroundColor(.white)
+                                                        .multilineTextAlignment(.leading)
+                                                        .padding(.horizontal, 16)
+                                                        .padding(.vertical, 12)
+                                                        .background(Color(hex: "#F97316"))
+                                                        .cornerRadius(20)
                                                 }
                                             }
-                                            .padding(.horizontal, 16)
                                         }
+                                        .padding(.horizontal, 16)
                                     }
                                 }
                                 
