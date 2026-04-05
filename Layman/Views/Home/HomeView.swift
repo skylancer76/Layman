@@ -98,9 +98,9 @@ struct HomeView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Text("Layman")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 20, weight: .heavy))
                         .foregroundColor(Color(hex: "#1A1A1A"))
-                        .padding(.leading, 4)
+                        .fixedSize()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -156,13 +156,31 @@ struct FeaturedCardView: View {
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Image with caching
-            if let urlString = article.imageURL, let url = URL(string: urlString) {
-                CachedAsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
+            GeometryReader { geo in
+                // Image with caching
+                if let urlString = article.imageURL, let url = URL(string: urlString) {
+                    CachedAsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .clipped()
+                    } placeholder: {
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(hex: "#E8793A"), Color(hex: "#F97316")],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                Image(systemName: "newspaper")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.white.opacity(0.5))
+                            )
+                    }
+                } else {
                     Rectangle()
                         .fill(
                             LinearGradient(
@@ -177,20 +195,6 @@ struct FeaturedCardView: View {
                                 .foregroundColor(.white.opacity(0.5))
                         )
                 }
-            } else {
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "#E8793A"), Color(hex: "#F97316")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        Image(systemName: "newspaper")
-                            .font(.system(size: 40))
-                            .foregroundColor(.white.opacity(0.5))
-                    )
             }
             
             // Gradient overlay

@@ -13,122 +13,128 @@ struct ArticleDetailView: View {
     @State private var currentCard = 0
     @State private var showWebView = false
     @State private var showChat = false
+    @State private var contentCards: [String] = []
+    @State private var isLoadingContent = true
     @Environment(\.dismiss) var dismiss
-    
-    let contentCards: [String]
-    
-    init(article: Article) {
-        self.article = article
-        // Split description into 3 cards
-        let fullText = article.description ?? "No content available for this article."
-        let words = fullText.split(separator: " ").map(String.init)
-        let chunkSize = max(1, words.count / 3)
-        
-        var cards: [String] = []
-        for i in 0..<3 {
-            let start = i * chunkSize
-            let end = min(start + chunkSize, words.count)
-            if start < words.count {
-                cards.append(words[start..<end].joined(separator: " "))
-            } else {
-                cards.append(fullText)
-            }
-        }
-        self.contentCards = cards
-    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
             Color(hex: "#FFF8F0").ignoresSafeArea()
             
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    
-                    // Headline
-                    Text(article.title)
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.primary)
-                        .lineLimit(2)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
-                    
-                    // Source + Date
-                    HStack {
-                        Text(article.sourceName ?? "")
-                            .font(.system(size: 13))
-                            .foregroundColor(Color(hex: "#F97316"))
-                        Spacer()
-                        Text(article.publishedAt?.prefix(10) ?? "")
-                            .font(.system(size: 13))
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.horizontal, 16)
-                    
-                    // Article Image
-                    AsyncImage(url: URL(string: article.imageURL ?? "")) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color(hex: "#F97316").opacity(0.2))
-                            .overlay(
-                                Image(systemName: "newspaper")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(Color(hex: "#F97316"))
-                            )
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 220)
-                    .clipped()
-                    
-                    // Content Cards
-                    VStack(spacing: 12) {
-                        TabView(selection: $currentCard) {
-                            ForEach(0..<contentCards.count, id: \.self) { index in
-                                ContentCardView(text: contentCards[index])
-                                    .tag(index)
-                            }
-                        }
-                        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                        .frame(height: 180)
+            if isLoadingContent {
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(Color(hex: "#C4652A"))
+                    Text("Simplifying for you...")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color(hex: "#C4652A"))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
                         
-                        // Page dots
-                        HStack(spacing: 6) {
-                            ForEach(0..<contentCards.count, id: \.self) { index in
-                                Circle()
-                                    .fill(index == currentCard ? Color(hex: "#F97316") : Color.gray.opacity(0.3))
-                                    .frame(
-                                        width: index == currentCard ? 10 : 6,
-                                        height: index == currentCard ? 10 : 6
+                        // Headline
+                        Text(article.title)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(Color(hex: "#1A1A1A"))
+                            .lineLimit(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+                        
+                        // Article Image
+                        GeometryReader { geo in
+                            if let urlString = article.imageURL, let url = URL(string: urlString) {
+                                CachedAsyncImage(url: url) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: geo.size.width, height: 240)
+                                        .clipped()
+                                } placeholder: {
+                                    Rectangle()
+                                        .fill(Color(hex: "#FAE8D8"))
+                                        .overlay(
+                                            ProgressView()
+                                                .tint(Color(hex: "#C4652A"))
+                                        )
+                                }
+                                .frame(width: geo.size.width, height: 240)
+                                .cornerRadius(16)
+                            } else {
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color(hex: "#E8793A"), Color(hex: "#F97316")],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
                                     )
-                                    .animation(.spring(), value: currentCard)
+                                    .frame(height: 240)
+                                    .cornerRadius(16)
+                                    .overlay(
+                                        Image(systemName: "newspaper")
+                                            .font(.system(size: 40))
+                                            .foregroundColor(.white.opacity(0.5))
+                                    )
                             }
                         }
+                        .frame(height: 240)
+                        .padding(.horizontal, 20)
+                        
+                        // Content Cards — 3 swipeable parts
+                        if !contentCards.isEmpty {
+                            VStack(spacing: 12) {
+                                TabView(selection: $currentCard) {
+                                    ForEach(0..<contentCards.count, id: \.self) { index in
+                                        ContentCardView(text: contentCards[index])
+                                            .tag(index)
+                                    }
+                                }
+                                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                                .frame(height: 200)
+                                
+                                // Page dots
+                                HStack(spacing: 6) {
+                                    ForEach(0..<contentCards.count, id: \.self) { index in
+                                        Circle()
+                                            .fill(index == currentCard ? Color(hex: "#C4652A") : Color.gray.opacity(0.3))
+                                            .frame(
+                                                width: index == currentCard ? 10 : 6,
+                                                height: index == currentCard ? 10 : 6
+                                            )
+                                            .animation(.spring(), value: currentCard)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                        }
+                        
+                        Spacer(minLength: 100)
                     }
-                    .padding(.horizontal, 16)
-                    
-                    Spacer(minLength: 100)
                 }
-            }
-            
-            // Ask Layman Button
-            Button {
-                showChat = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "bubble.left.fill")
-                    Text("Ask Layman")
-                        .font(.system(size: 17, weight: .semibold))
+                
+                // Ask Layman Button — fixed at bottom
+                Button {
+                    showChat = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Ask Layman")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(Color(hex: "#C4652A"))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                    .shadow(color: Color(hex: "#C4652A").opacity(0.3), radius: 12)
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                .background(Color(hex: "#F97316"))
-                .cornerRadius(16)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
-                .shadow(color: Color(hex: "#F97316").opacity(0.4), radius: 12)
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -138,37 +144,40 @@ struct ArticleDetailView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.primary)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "#1A1A1A"))
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 16) {
-                    // Link button
+                HStack(spacing: 14) {
                     Button {
                         showWebView = true
                     } label: {
                         Image(systemName: "link")
-                            .foregroundColor(.primary)
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#1A1A1A"))
                     }
                     
-                    // Bookmark button
                     Button {
                         Task { await toggleSave() }
                     } label: {
                         Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
-                            .foregroundColor(isSaved ? Color(hex: "#F97316") : .primary)
+                            .font(.system(size: 15))
+                            .foregroundColor(isSaved ? Color(hex: "#C4652A") : Color(hex: "#1A1A1A"))
                     }
                     
-                    // Share button
                     Button {
                         shareArticle()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.primary)
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#1A1A1A"))
                     }
                 }
             }
         }
+        .toolbarBackground(Color(hex: "#FFF8F0"), for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showWebView) {
             if let urlString = article.sourceURL,
                let url = URL(string: urlString) {
@@ -180,8 +189,80 @@ struct ArticleDetailView: View {
             ChatView(article: article)
         }
         .task {
-            isSaved = (try? await SupabaseService.shared.isArticleSaved(articleId: article.id)) ?? false
+            await loadContent()
         }
+    }
+    
+    // MARK: - Load Content via Groq AI
+    func loadContent() async {
+        isLoadingContent = true
+        
+        async let savedCheck: Bool = (try? SupabaseService.shared.isArticleSaved(articleId: article.id)) ?? false
+        
+        let articleContext = "\(article.title). \(article.description ?? "")"
+        
+        do {
+            let summary = try await GroqService.shared.generateLaymanSummary(articleContext: articleContext)
+            
+            let sentences = splitIntoSentences(summary)
+            var cards: [String] = []
+            
+            if sentences.count >= 6 {
+                for i in stride(from: 0, to: min(6, sentences.count), by: 2) {
+                    let end = min(i + 2, sentences.count)
+                    cards.append(sentences[i..<end].joined(separator: " "))
+                    if cards.count == 3 { break }
+                }
+            } else if sentences.count >= 3 {
+                let perCard = max(1, sentences.count / 3)
+                for i in stride(from: 0, to: sentences.count, by: perCard) {
+                    let end = min(i + perCard, sentences.count)
+                    cards.append(sentences[i..<end].joined(separator: " "))
+                    if cards.count == 3 { break }
+                }
+            } else {
+                cards = sentences
+            }
+            
+            if cards.isEmpty { cards = [summary] }
+            if cards.count > 3 { cards = Array(cards.prefix(3)) }
+            
+            contentCards = cards
+        } catch {
+            let fallbackText = article.description ?? "No content available for this article."
+            contentCards = fallbackSplit(fallbackText)
+        }
+        
+        isSaved = await savedCheck
+        
+        withAnimation(.easeIn(duration: 0.3)) {
+            isLoadingContent = false
+        }
+    }
+    
+    private func splitIntoSentences(_ text: String) -> [String] {
+        var sentences: [String] = []
+        text.enumerateSubstrings(in: text.startIndex..., options: .bySentences) { substring, _, _, _ in
+            if let sentence = substring?.trimmingCharacters(in: .whitespacesAndNewlines), !sentence.isEmpty {
+                sentences.append(sentence)
+            }
+        }
+        return sentences
+    }
+    
+    private func fallbackSplit(_ text: String) -> [String] {
+        let words = text.split(separator: " ").map(String.init)
+        guard words.count > 3 else { return [text] }
+        let chunkSize = max(1, words.count / 3)
+        var cards: [String] = []
+        for i in 0..<3 {
+            let start = i * chunkSize
+            let end = min(start + chunkSize, words.count)
+            if start < words.count {
+                cards.append(words[start..<end].joined(separator: " "))
+            }
+        }
+        return cards
     }
     
     func toggleSave() async {
@@ -217,12 +298,12 @@ struct ContentCardView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 10)
+                .fill(Color(hex: "#F4E7D8"))
+                .shadow(color: Color(hex: "#C4652A").opacity(0.08), radius: 8)
             
             Text(text)
-                .font(.system(size: 15))
-                .foregroundColor(.primary)
+                .font(.system(size: 17))
+                .foregroundColor(Color(hex: "#1A1A1A"))
                 .lineSpacing(6)
                 .multilineTextAlignment(.leading)
                 .padding(20)
@@ -230,4 +311,3 @@ struct ContentCardView: View {
         }
     }
 }
-

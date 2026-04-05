@@ -21,7 +21,7 @@ class GroqService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body: [String: Any] = [
-            "model": "llama3-8b-8192",
+            "model": "llama-3.1-8b-instant",
             "max_tokens": 150,
             "messages": [
                 [
@@ -51,7 +51,7 @@ class GroqService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body: [String: Any] = [
-            "model": "llama3-8b-8192",
+            "model": "llama-3.1-8b-instant",
             "max_tokens": 150,
             "messages": [
                 [
@@ -79,6 +79,36 @@ class GroqService {
         }
         
         return ["What happened here?", "Why does this matter?", "Who is involved?"]
+    }
+    
+    func generateLaymanSummary(articleContext: String) async throws -> String {
+        guard let url = URL(string: baseURL) else { throw URLError(.badURL) }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "model": "llama-3.1-8b-instant",
+            "max_tokens": 300,
+            "messages": [
+                [
+                    "role": "system",
+                    "content": "You are Layman, a news simplifier. Summarize the following article in exactly 6 simple, easy-to-understand sentences. Use casual everyday language that anyone can understand. No jargon. No bullet points. Just 6 plain sentences."
+                ],
+                [
+                    "role": "user",
+                    "content": articleContext
+                ]
+            ]
+        ]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(GroqResponse.self, from: data)
+        return response.choices.first?.message.content ?? "Summary not available."
     }
 }
 
